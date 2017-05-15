@@ -4,7 +4,7 @@ import (
 	"github.com/lunixbochs/usercorn/go/models"
 )
 
-var MapsCmd = cmd(&Command{
+var MapsCmd = registerCommand(&Command{
 	Name: "maps",
 	Desc: "Display memory mappings.",
 	// TODO: once we have command overloading, merge this with mem command
@@ -16,7 +16,7 @@ var MapsCmd = cmd(&Command{
 	},
 })
 
-var MemCmd = cmd(&Command{
+var MemCmd = registerCommand(&Command{
 	Name: "mem",
 	Desc: "Read/write memory.",
 	// TODO: need overloading so we can keep arg safety

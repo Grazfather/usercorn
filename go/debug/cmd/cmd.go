@@ -20,7 +20,7 @@ type Command struct {
 
 var Commands = make(map[string]*Command)
 
-func cmd(c *Command) *Command {
+func registerCommand(c *Command) *Command {
 	fn := reflect.ValueOf(c.Run)
 	if !fn.IsValid() || fn.Kind() != reflect.Func {
 		panic(fmt.Sprintf("Command.Run must be a func: got (%T) %#v\n", c.Run, c.Run))
