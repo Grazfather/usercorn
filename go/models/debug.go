@@ -168,14 +168,14 @@ func HexDump(base uint64, mem []byte, bits int) []string {
 		}
 		return string(o)
 	}
-	bsz := bits / 8
-	hexFmt := fmt.Sprintf("0x%%0%dx", bsz*2)
+	// TODO: Configurable block size
+	bsz := 1
+	hexFmt := "0x%02x"
 	padBlock := strings.Repeat(" ", bsz*2)
 	padTail := strings.Repeat(" ", bsz)
 
-	width := 80
-	addrSize := bsz*2 + 4
-	blockCount := ((width - addrSize) * 3 / 4) / ((bsz + 1) * 2)
+	// TODO: Configurable block count
+	blockCount := 16
 	lineSize := blockCount * bsz
 	var out []string
 	blocks := make([]string, blockCount)
