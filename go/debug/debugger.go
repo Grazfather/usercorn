@@ -55,7 +55,7 @@ func (d *Debugger) Run(c net.Conn) {
 			fmt.Fprintf(os.Stderr, "error in readline: %v\n", err)
 			break
 		}
-		if err := cmd.Run(context, line); err != nil {
+		if err := cmd.Dispatch(context, line); err != nil {
 			fmt.Fprintf(os.Stderr, "error in command: %v\n", err)
 			break
 		}

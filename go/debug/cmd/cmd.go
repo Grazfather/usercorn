@@ -44,7 +44,7 @@ func (c *Context) Printf(format string, a ...interface{}) (int, error) {
 
 var aj = argjoy.NewArgjoy(argjoy.RadStrToInt)
 
-func Run(c *Context, line string) error {
+func Dispatch(c *Context, line string) error {
 	args, err := shellwords.Parse(line)
 	if err != nil {
 		c.Printf("parse error: %v\n", err)
