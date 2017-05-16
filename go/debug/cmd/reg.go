@@ -8,7 +8,7 @@ import (
 
 var strEqNumRe = regexp.MustCompile(`^([a-zA-Z]+)=((-|0|0x|0b)?\d+)$`)
 
-var RegCmd = registerCommand(&Command{
+var RegCmd = register(&Command{
 	Name: "reg",
 	Desc: "Read/write regs.",
 	Run: func(c *Context, args ...string) error {

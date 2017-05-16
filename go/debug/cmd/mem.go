@@ -7,7 +7,7 @@ import (
 	"github.com/lunixbochs/usercorn/go/models"
 )
 
-var MapsCmd = registerCommand(&Command{
+var MapsCmd = register(&Command{
 	Name: "maps",
 	Desc: "Display memory mappings.",
 	// TODO: once we have command overloading, merge this with mem command
@@ -19,7 +19,7 @@ var MapsCmd = registerCommand(&Command{
 	},
 })
 
-var MemCmd = registerCommand(&Command{
+var MemCmd = register(&Command{
 	Name: "mem",
 	Desc: "Dump memory.",
 	// TODO: need overloading so we can keep arg safety
@@ -36,7 +36,7 @@ var MemCmd = registerCommand(&Command{
 	},
 })
 
-var WriteCmd = registerCommand(&Command{
+var WriteCmd = register(&Command{
 	Name: "e",
 	Desc: "Write value to memory.",
 	// TODO: Need the right codec to allow optional args
@@ -62,7 +62,7 @@ var WriteCmd = registerCommand(&Command{
 	},
 })
 
-var WriteStrCmd = registerCommand(&Command{
+var WriteStrCmd = register(&Command{
 	Name: "es",
 	Desc: "Write string to memory.",
 	Run: func(c *Context, addr uint64, str ...string) error {
