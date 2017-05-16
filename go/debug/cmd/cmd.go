@@ -42,7 +42,25 @@ func (c *Context) Printf(format string, a ...interface{}) (int, error) {
 	return n, errors.Wrap(err, "fmt.Printf() failed")
 }
 
-var aj = argjoy.NewArgjoy(argjoy.RadStrToInt)
+var aj *argjoy.Argjoy
+
+func strCodec(arg interface{}, vals []interface{}) error {
+	if a, ok := vals[0].(string); ok {
+		if v, ok := arg.(*string); ok {
+			*v = a
+			return nil
+		}
+	}
+	return argjoy.NoMatch
+}
+
+func InitCmds() error {
+	aj = argjoy.NewArgjoy()
+	aj.Register(strCodec)
+	aj.Register(argjoy.RadStrToInt)
+
+	return nil
+}
 
 func Dispatch(c *Context, line string) error {
 	args, err := shellwords.Parse(line)

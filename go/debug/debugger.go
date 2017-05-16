@@ -32,6 +32,7 @@ func NewDebugger(first models.Usercorn, extra ...models.Usercorn) *Debugger {
 
 func (d *Debugger) Run(c net.Conn) {
 	fmt.Fprintf(os.Stderr, "Debug connection from %s\n", c.RemoteAddr())
+	cmd.InitCmds()
 
 	stdin, err := c.(*net.TCPConn).File()
 	if err != nil {
