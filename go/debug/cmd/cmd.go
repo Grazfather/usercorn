@@ -20,6 +20,32 @@ type Command struct {
 
 var Commands = make(map[string]*Command)
 
+var HelpCmd = registerCommand(&Command{
+	Name: "help",
+	Desc: "Print basic help",
+	Run: func(c *Context, name string) error {
+		if name != "all" {
+			if command, ok := Commands[name]; ok {
+				// Print longer help if it exists
+				printCmd(c, command)
+				return nil
+			} else {
+				c.Printf("Could not find command '%s'\n", name)
+				return errors.New("X")
+			}
+		} else {
+			for _, command := range Commands {
+				printCmd(c, command)
+			}
+		}
+		return nil
+	},
+})
+
+func printCmd(c *Context, command *Command) {
+	c.Printf("%8s : %s\n", command.Name, command.Desc)
+}
+
 func registerCommand(c *Command) *Command {
 	fn := reflect.ValueOf(c.Run)
 	if !fn.IsValid() || fn.Kind() != reflect.Func {
