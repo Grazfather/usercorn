@@ -1,3 +1,5 @@
+// Package cmd provides a set of debug commands plus basic command line parsing
+// and dispatch
 package cmd
 
 import (

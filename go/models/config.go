@@ -45,6 +45,7 @@ func (t *TraceConfig) Init() {
 	}
 }
 
+// Config simply encapsulates all settings provided on the command line.
 type Config struct {
 	Output io.WriteCloser
 

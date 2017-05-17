@@ -340,6 +340,8 @@ func DosSyscall(u models.Usercorn) {
 	// TODO: Set error
 }
 
+// getDosArgCodec works like the commonArgCodec but adds DS as a base address
+// for all address-type arguments.
 func (k *DosKernel) getDosArgCodec() func(interface{}, []interface{}) error {
 	return func(arg interface{}, vals []interface{}) error {
 		// DOS takes address as DS+DX
@@ -383,6 +385,7 @@ func DosInterrupt(u models.Usercorn, cause uint32) {
 		panic(fmt.Sprintf("unhandled X86 interrupt %#X", intno))
 	}
 }
+
 func DosKernels(u models.Usercorn) []interface{} {
 	return []interface{}{NewKernel()}
 }

@@ -1,3 +1,5 @@
+// Package debug provides a very basic debugger server that dispatches to
+// commands found in the cmd package
 package debug
 
 import (
