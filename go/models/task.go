@@ -6,6 +6,7 @@ import (
 	"github.com/lunixbochs/usercorn/go/models/cpu"
 )
 
+// The Task interface consolidates the arch, os, and cpu
 type Task interface {
 	cpu.Cpu
 	// Cpu wrappers

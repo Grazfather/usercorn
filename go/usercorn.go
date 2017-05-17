@@ -753,6 +753,7 @@ func (u *Usercorn) addHooks() error {
 	return nil
 }
 
+// mapBinary maps the loader-defined segments into memory and writes their data in.
 func (u *Usercorn) mapBinary(f *os.File, isInterp bool) (interpBase, entry, base, realEntry uint64, err error) {
 	l := u.loader
 	if isInterp {
@@ -1004,6 +1005,7 @@ func (u *Usercorn) Restart(fn func(models.Usercorn, error) error) {
 	u.Stop()
 }
 
+// Trampoline registers a function to be executed the next time usercorn stops.
 func (u *Usercorn) Trampoline(fun func() error) error {
 	if u.running {
 		desc := ""
@@ -1020,7 +1022,7 @@ func (u *Usercorn) Trampoline(fun func() error) error {
 	}
 }
 
-// like RunShellcode but you're expected to map memory yourself
+// RunShellcodeMapped is like RunShellcode but you're expected to map memory yourself
 func (u *Usercorn) RunShellcodeMapped(mmap *models.Mmap, code []byte, setRegs map[int]uint64, regsClobbered []int) error {
 	return u.Trampoline(func() error {
 		if regsClobbered == nil {
@@ -1053,7 +1055,7 @@ func (u *Usercorn) RunShellcodeMapped(mmap *models.Mmap, code []byte, setRegs ma
 	})
 }
 
-// maps and runs shellcode at addr
+// RunShellcode maps and runs shellcode at addr
 // if regsClobbered is nil, setRegs will be saved/restored
 // if addr is 0, we'll pick one for you
 // if addr is already mapped, we will return an error
@@ -1074,7 +1076,7 @@ func (u *Usercorn) RunShellcode(addr uint64, code []byte, setRegs map[int]uint64
 	return u.RunShellcodeMapped(mmap, code, setRegs, regsClobbered)
 }
 
-// like RunShellcode, but we assemble it for you
+// RunAsm is like RunShellcode, but we assemble it for you
 func (u *Usercorn) RunAsm(addr uint64, asm string, setRegs map[int]uint64, regsClobbered []int) error {
 	// the assembler needs to know where the code is being assembled
 	// the mapper needs to know how much memory to return
@@ -1118,7 +1120,7 @@ func (u *Usercorn) RunAsm(addr uint64, asm string, setRegs map[int]uint64, regsC
 
 var breakRe = regexp.MustCompile(`^((?P<addr>0x[0-9a-fA-F]+|\d+)|(?P<sym>[\w:]+(?P<off>\+0x[0-9a-fA-F]+|\d+)?)|(?P<source>.+):(?P<line>\d+))(@(?P<file>.+))?$`)
 
-// adds a breakpoint to Usercorn instance
+// BreakAdd adds a breakpoint to Usercorn instance
 // see models.Breakpoint for desc syntax
 // future=true adds it to the list of breakpoints to update when new memory is mapped/registered
 func (u *Usercorn) BreakAdd(desc string, future bool, cb func(u models.Usercorn, addr uint64)) (*models.Breakpoint, error) {
