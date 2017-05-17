@@ -37,7 +37,7 @@ var MemCmd = register(&Command{
 })
 
 var WriteCmd = register(&Command{
-	Name: "e",
+	Name: "w",
 	Desc: "Write value to memory.",
 	// TODO: Need the right codec to allow optional args
 	Run: func(c *Context, addr, value, optSize uint64) error {
@@ -63,7 +63,7 @@ var WriteCmd = register(&Command{
 })
 
 var WriteStrCmd = register(&Command{
-	Name: "es",
+	Name: "ws",
 	Desc: "Write string to memory.",
 	Run: func(c *Context, addr uint64, str ...string) error {
 		sb := []byte(strings.Join(str, " "))
