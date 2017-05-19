@@ -1,4 +1,4 @@
-package dis
+package ndh
 
 const (
 	OP_PUSH = 0x01
