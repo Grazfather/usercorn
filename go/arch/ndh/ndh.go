@@ -2,23 +2,71 @@ package ndh
 
 import (
 	co "github.com/lunixbochs/usercorn/go/kernel/common"
+	"github.com/lunixbochs/usercorn/go/kernel/linux"
 	"github.com/lunixbochs/usercorn/go/kernel/posix"
 	"github.com/lunixbochs/usercorn/go/models"
 )
 
 type NdhKernel struct {
-	*co.KernelBase
+	*linux.LinuxKernel
 }
 
 func NewKernel() *NdhKernel {
 	k := &NdhKernel{
-		KernelBase: &co.KernelBase{},
+		linux.NewKernel(),
 	}
 	return k
 }
 
 func NdhKernels(u models.Usercorn) []interface{} {
 	return []interface{}{NewKernel()}
+}
+
+const (
+	R0 = iota
+	R1
+	R2
+	R3
+	R4
+	R5
+	R6
+	R7
+	BP
+	SP
+	PC
+	AF
+	BF
+	ZF
+)
+
+var ndhSyscallRegs = []int{R1, R2, R3, R4}
+var ndhSysNum = map[int]string{
+	0x01: "exit",
+	0x02: "open",
+	0x03: "read",
+	0x04: "write",
+	0x05: "close",
+	0x06: "setuid",
+	0x07: "setgid",
+	0x08: "dup2",
+	0x09: "send",
+	0x0a: "recv",
+	0x0b: "socket",
+	0x0c: "listen",
+	0x0d: "bind",
+	0x0e: "accept",
+	0x0f: "chdir",
+	0x10: "chmod",
+	0x11: "lseek",
+	0x12: "getpid",
+	0x13: "getuid",
+	0x14: "pause",
+}
+
+func NdhSyscall(u models.Usercorn) {
+	num, _ := u.RegRead(R0)
+	name, _ := ndhSysNum[int(num)]
+	u.Syscall(int(num), name, co.RegArgs(u, ndhSyscallRegs))
 }
 
 // Map the stack and sets up argc/argv
@@ -44,7 +92,7 @@ func NdhInit(u models.Usercorn, args, env []string) error {
 
 // I'll probably use this to dispatch syscalls instead of adding a separate NDH syscall hook
 func NdhInterrupt(u models.Usercorn, intno uint32) {
-	u.Printf("ndh interrupt: %d\n", intno)
+	NdhSyscall(u)
 }
 
 func init() {

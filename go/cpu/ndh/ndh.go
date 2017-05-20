@@ -163,6 +163,8 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			if zf, _ := c.RegRead(ZF); zf != 1 {
 				jump = uint64(c.get(instr.args[0]))
 			}
+		case OP_SYSCALL:
+			c.OnIntr(0)
 		case OP_CALL:
 			fallthrough
 		case OP_CMP:
@@ -193,8 +195,6 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			fallthrough
 		case OP_SUB:
 			// TODO: ZF
-			fallthrough
-		case OP_SYSCALL:
 			fallthrough
 		case OP_XCHG:
 			fallthrough
