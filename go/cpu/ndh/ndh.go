@@ -103,6 +103,7 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 	var jump uint64
 	var v uint16
 	var v2 uint16
+	var data = make([]byte, 2)
 	// TODO: Support other exit mechanisms e.g. END
 	// TODO: What about jumps before begin?
 	// TODO: begin is ignored
@@ -138,11 +139,18 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			c.set(instr.args[0], v)
 		case OP_POP:
 			sp, _ := c.RegRead(SP)
-			data, _ := c.MemRead(uint64(sp), 2)
+			data, _ = c.MemRead(uint64(sp), 2)
 			v := binary.LittleEndian.Uint16(data)
 			sp += 2
 			c.RegWrite(SP, sp)
 			c.set(instr.args[0], v)
+		case OP_PUSH:
+			v = c.get(instr.args[0])
+			sp, _ := c.RegRead(SP)
+			sp -= 2
+			c.RegWrite(SP, sp)
+			binary.LittleEndian.PutUint16(data, v)
+			c.MemWrite(sp, data)
 		case OP_JMPS:
 			fallthrough
 		case OP_JMPL:
@@ -188,8 +196,6 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			fallthrough
 		case OP_OR:
 			// TODO: ZF
-			fallthrough
-		case OP_PUSH:
 			fallthrough
 		case OP_RET:
 			fallthrough
