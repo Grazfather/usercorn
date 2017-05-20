@@ -103,12 +103,13 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 	var v uint16
 	var v2 uint16
 	c.stopRequest = false
-	// TODO: Support other exit mechanisms e.g. END
-	// TODO: What about jumps before begin?
-	// TODO: begin is ignored
+	c.RegWrite(PC, begin)
+	c.OnBlock(begin, 0)
 	for pc < until && !c.stopRequest {
-		// TODO: Check for errors
 		pc, _ = c.RegRead(PC)
+		if jump != 0 {
+			c.OnBlock(pc, 0)
+		}
 		jump = 0
 		buf, _ := c.ReadProt(pc, MAX_INST_LEN, cpu.PROT_EXEC)
 		instructions, err := c.Dis.Dis(buf, pc)
@@ -116,6 +117,10 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			return err
 		}
 		instr := instructions[0].(*ins)
+		c.OnCode(pc, uint32(len(instr.bytes)))
+		if c.stopRequest {
+			break
+		}
 		switch instr.op {
 		case OP_END:
 			return models.ExitStatus(0)
