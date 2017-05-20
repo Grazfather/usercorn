@@ -191,6 +191,14 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			if zf, _ := c.RegRead(ZF); zf != 1 {
 				jump = uint64(c.get(instr.args[0]))
 			}
+		case OP_JA:
+			if af, _ := c.RegRead(AF); af != 1 {
+				jump = uint64(c.get(instr.args[0]))
+			}
+		case OP_JB:
+			if bf, _ := c.RegRead(BF); bf != 1 {
+				jump = uint64(c.get(instr.args[0]))
+			}
 		case OP_SYSCALL:
 			c.OnIntr(0)
 		case OP_CALL:
@@ -222,10 +230,6 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 		case OP_CMP:
 			// TODO: AF & BF
 			// TODO: ZF
-			fallthrough
-		case OP_JA:
-			fallthrough
-		case OP_JB:
 			fallthrough
 		default:
 			fmt.Println("[UNIMPLEMENTED]")
