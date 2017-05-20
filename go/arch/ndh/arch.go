@@ -28,6 +28,10 @@ var Arch = &models.Arch{
 		"bp": 8,
 		"sp": 9,
 		"pc": 10,
+		// TODO: Should we consider the flags as one reg?
+		"af": 11,
+		"bf": 12,
+		"zf": 13,
 	},
 	DefaultRegs: []string{
 		"r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7",

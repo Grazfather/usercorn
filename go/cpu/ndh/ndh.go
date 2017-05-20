@@ -20,13 +20,16 @@ const (
 	BP
 	SP
 	PC
+	AF
+	BF
+	ZF
 )
 
 type Builder struct{}
 
 func (b *Builder) New() (cpu.Cpu, error) {
 	// Ugh
-	regs := []int{R0, R1, R2, R3, R4, R5, R6, R7, BP, SP, PC}
+	regs := []int{R0, R1, R2, R3, R4, R5, R6, R7, BP, SP, PC, AF, BF, ZF}
 
 	ndh := &NdhCpu{Regs: cpu.NewRegs(16, regs), Mem: cpu.NewMem(16, binary.LittleEndian)}
 	hooks := cpu.NewHooks(ndh, ndh.Mem)
@@ -86,15 +89,27 @@ func (c *NdhCpu) get(arg arg) uint16 {
 	return v
 }
 
+func (c *NdhCpu) setZf(val uint16) {
+	if val == 0 {
+		c.RegWrite(ZF, 1)
+	} else {
+		c.RegWrite(ZF, 0)
+	}
+}
+
 // execution
 func (c *NdhCpu) Start(begin, until uint64) error {
 	var pc uint64
+	var jump uint64
+	var v uint16
+	var v2 uint16
 	// TODO: Support other exit mechanisms e.g. END
 	// TODO: What about jumps before begin?
 	// TODO: begin is ignored
 	for pc < until {
 		// TODO: Check for errors
 		pc, _ = c.RegRead(PC)
+		jump = 0
 		// TODO: How much should I read in? 5bytes is definitely enough for 1
 		// Why five? Because it is for sure enough for a whole instruction
 		// Ugly
@@ -109,19 +124,45 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			//return errors.ExitStatus
 			return errors.New("END: We're done here and I don't know how to stop")
 		case OP_ADD:
-			// TODO: ZF
-			c.set(instr.args[0], c.get(instr.args[0])+c.get(instr.args[1]))
+			v = c.get(instr.args[0]) + c.get(instr.args[1])
+			c.set(instr.args[0], v)
+			c.setZf(v)
 		case OP_MOV:
-			c.set(instr.args[0], c.get(instr.args[1]))
+			v = c.get(instr.args[1])
+			c.set(instr.args[0], v)
 		case OP_INC:
-			// TODO: ZF
-			c.set(instr.args[0], c.get(instr.args[0])+1)
+			v = c.get(instr.args[0]) + 1
+			c.set(instr.args[0], v)
 		case OP_DEC:
-			// TODO: ZF
-			c.set(instr.args[0], c.get(instr.args[0])-1)
-		case OP_AND:
-			// TODO: ZF
+			v = c.get(instr.args[0]) - 1
+			c.set(instr.args[0], v)
+		case OP_POP:
+			sp, _ := c.RegRead(SP)
+			data, _ := c.MemRead(uint64(sp), 2)
+			v := binary.LittleEndian.Uint16(data)
+			sp += 2
+			c.RegWrite(SP, sp)
+			c.set(instr.args[0], v)
+		case OP_JMPS:
 			fallthrough
+		case OP_JMPL:
+			jump = uint64(c.get(instr.args[0]))
+		case OP_TEST:
+			v = c.get(instr.args[0])
+			v2 = c.get(instr.args[1])
+			c.setZf(v - v2)
+		case OP_AND:
+			v = c.get(instr.args[0]) & c.get(instr.args[1])
+			c.set(instr.args[0], v)
+			c.setZf(v)
+		case OP_JZ:
+			if zf, _ := c.RegRead(ZF); zf == 1 {
+				jump = uint64(c.get(instr.args[0]))
+			}
+		case OP_JNZ:
+			if zf, _ := c.RegRead(ZF); zf != 1 {
+				jump = uint64(c.get(instr.args[0]))
+			}
 		case OP_CALL:
 			fallthrough
 		case OP_CMP:
@@ -135,14 +176,6 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			fallthrough
 		case OP_JB:
 			fallthrough
-		case OP_JMPL:
-			fallthrough
-		case OP_JMPS:
-			fallthrough
-		case OP_JNZ:
-			fallthrough
-		case OP_JZ:
-			fallthrough
 		case OP_MUL:
 			// TODO: ZF
 			fallthrough
@@ -154,8 +187,6 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 		case OP_OR:
 			// TODO: ZF
 			fallthrough
-		case OP_POP:
-			fallthrough
 		case OP_PUSH:
 			fallthrough
 		case OP_RET:
@@ -164,9 +195,6 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			// TODO: ZF
 			fallthrough
 		case OP_SYSCALL:
-			fallthrough
-		case OP_TEST:
-			// TODO: ZF
 			fallthrough
 		case OP_XCHG:
 			fallthrough
@@ -177,7 +205,7 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			fmt.Println("[UNIMPLEMENTED]")
 			//return errors.Errorf("Unhandled or illegal instruction! %v\n", instr)
 		}
-		c.RegWrite(PC, pc+uint64(len(instr.Bytes())))
+		c.RegWrite(PC, pc+uint64(len(instr.Bytes()))+jump)
 	}
 	return nil
 }
