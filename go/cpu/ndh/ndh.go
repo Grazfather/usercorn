@@ -128,6 +128,10 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			v = c.get(instr.args[0]) + c.get(instr.args[1])
 			c.set(instr.args[0], v)
 			c.setZf(v == 0)
+		case OP_SUB:
+			v = c.get(instr.args[0]) - c.get(instr.args[1])
+			c.set(instr.args[0], v)
+			c.setZf(v == 0)
 		case OP_MOV:
 			v = c.get(instr.args[1])
 			c.set(instr.args[0], v)
@@ -198,9 +202,6 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			// TODO: ZF
 			fallthrough
 		case OP_RET:
-			fallthrough
-		case OP_SUB:
-			// TODO: ZF
 			fallthrough
 		case OP_XCHG:
 			fallthrough
