@@ -141,6 +141,10 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			v = c.get(instr.args[0]) | c.get(instr.args[1])
 			c.set(instr.args[0], v)
 			c.setZf(v == 0)
+		case OP_AND:
+			v = c.get(instr.args[0]) & c.get(instr.args[1])
+			c.set(instr.args[0], v)
+			c.setZf(v == 0)
 		case OP_XOR:
 			v = c.get(instr.args[0]) ^ c.get(instr.args[1])
 			c.set(instr.args[0], v)
@@ -175,10 +179,6 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			v = c.get(instr.args[0])
 			v2 = c.get(instr.args[1])
 			c.setZf(v == 0 && v2 == 0)
-		case OP_AND:
-			v = c.get(instr.args[0]) & c.get(instr.args[1])
-			c.set(instr.args[0], v)
-			c.setZf(v == 0)
 		case OP_JMPS:
 			fallthrough
 		case OP_JMPL:
