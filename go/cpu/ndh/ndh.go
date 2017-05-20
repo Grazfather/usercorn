@@ -89,8 +89,8 @@ func (c *NdhCpu) get(arg arg) uint16 {
 	return v
 }
 
-func (c *NdhCpu) setZf(val uint16) {
-	if val == 0 {
+func (c *NdhCpu) setZf(v bool) {
+	if v {
 		c.RegWrite(ZF, 1)
 	} else {
 		c.RegWrite(ZF, 0)
@@ -126,7 +126,7 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 		case OP_ADD:
 			v = c.get(instr.args[0]) + c.get(instr.args[1])
 			c.set(instr.args[0], v)
-			c.setZf(v)
+			c.setZf(v == 0)
 		case OP_MOV:
 			v = c.get(instr.args[1])
 			c.set(instr.args[0], v)
@@ -150,11 +150,11 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 		case OP_TEST:
 			v = c.get(instr.args[0])
 			v2 = c.get(instr.args[1])
-			c.setZf(v - v2)
+			c.setZf(v == 0 && v2 == 0)
 		case OP_AND:
 			v = c.get(instr.args[0]) & c.get(instr.args[1])
 			c.set(instr.args[0], v)
-			c.setZf(v)
+			c.setZf(v == 0)
 		case OP_JZ:
 			if zf, _ := c.RegRead(ZF); zf == 1 {
 				jump = uint64(c.get(instr.args[0]))
