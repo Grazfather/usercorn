@@ -51,15 +51,13 @@ func (c *NdhCpu) set(arg arg, value uint16) error {
 		c.RegWrite(int(a.num), uint64(value))
 	case *indirect:
 		var addr uint64
-		var data []byte
 		switch a := a.arg.(type) {
 		case *reg:
 			addr, _ = c.RegRead(int(a.num))
 		default:
 			panic("Wtf this indirect has a non-reg arg")
 		}
-		binary.LittleEndian.PutUint16(data, value)
-		c.MemWrite(addr, data)
+		c.WriteUint(addr, 1, cpu.PROT_WRITE, uint64(value&0xFF))
 	}
 	return nil
 }
@@ -79,8 +77,8 @@ func (c *NdhCpu) get(arg arg) uint16 {
 		default:
 			panic("Wtf this indirect has a non-reg arg")
 		}
-		data, _ = c.MemRead(addr, 2)
-		v = binary.LittleEndian.Uint16(data)
+		data, _ = c.MemRead(addr, 1)
+		v = uint16(data[0])
 	case *a8:
 		v = uint16(a.val)
 	case *a16:
@@ -153,8 +151,7 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			sp, _ := c.RegRead(SP)
 			sp -= 2
 			c.RegWrite(SP, sp)
-			binary.LittleEndian.PutUint16(data, v)
-			c.MemWrite(sp, data)
+			c.WriteUint(sp, 2, cpu.PROT_WRITE, uint64(v))
 		case OP_JMPS:
 			fallthrough
 		case OP_JMPL:
@@ -182,8 +179,7 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			sp, _ := c.RegRead(SP)
 			sp -= 2
 			c.RegWrite(SP, sp)
-			binary.LittleEndian.PutUint16(data, uint16(pc)+uint16(len(instr.Bytes())))
-			c.MemWrite(sp, data)
+			c.WriteUint(sp, 2, cpu.PROT_WRITE, pc+uint64(len(instr.Bytes())))
 			// Call is special: If the arg is a register it's an
 			// absolute jump, otherwise it's an offset
 			v = c.get(instr.args[0])
