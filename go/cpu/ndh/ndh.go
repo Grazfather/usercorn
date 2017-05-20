@@ -126,6 +126,14 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			v = c.get(instr.args[0]) - c.get(instr.args[1])
 			c.set(instr.args[0], v)
 			c.setZf(v == 0)
+		case OP_DIV:
+			v = c.get(instr.args[0]) / c.get(instr.args[1])
+			c.set(instr.args[0], v)
+			c.setZf(v == 0)
+		case OP_MUL:
+			v = c.get(instr.args[0]) * c.get(instr.args[1])
+			c.set(instr.args[0], v)
+			c.setZf(v == 0)
 		case OP_NOT:
 			v = c.get(instr.args[0]) ^ ^uint16(0)
 			c.setZf(v == 0)
@@ -140,6 +148,11 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 		case OP_MOV:
 			v = c.get(instr.args[1])
 			c.set(instr.args[0], v)
+		case OP_XCHG:
+			v = c.get(instr.args[0])
+			v2 = c.get(instr.args[1])
+			c.set(instr.args[0], v2)
+			c.set(instr.args[1], v)
 		case OP_INC:
 			v = c.get(instr.args[0]) + 1
 			c.set(instr.args[0], v)
@@ -210,17 +223,9 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			// TODO: AF & BF
 			// TODO: ZF
 			fallthrough
-		case OP_DIV:
-			// TODO: ZF
-			fallthrough
 		case OP_JA:
 			fallthrough
 		case OP_JB:
-			fallthrough
-		case OP_MUL:
-			// TODO: ZF
-			fallthrough
-		case OP_XCHG:
 			fallthrough
 		default:
 			fmt.Println("[UNIMPLEMENTED]")
