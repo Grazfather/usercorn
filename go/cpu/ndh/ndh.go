@@ -43,7 +43,8 @@ type NdhCpu struct {
 	*cpu.Regs
 	*cpu.Mem
 	*cpu.Hooks
-	Dis *Dis
+	Dis         *Dis
+	stopRequest bool
 }
 
 func (c *NdhCpu) set(arg arg, value uint16) error {
@@ -101,10 +102,11 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 	var jump uint64
 	var v uint16
 	var v2 uint16
+	c.stopRequest = false
 	// TODO: Support other exit mechanisms e.g. END
 	// TODO: What about jumps before begin?
 	// TODO: begin is ignored
-	for pc < until {
+	for pc < until && !c.stopRequest {
 		// TODO: Check for errors
 		pc, _ = c.RegRead(PC)
 		jump = 0
@@ -252,7 +254,10 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 	return nil
 }
 
-func (c *NdhCpu) Stop() error { return nil }
+func (c *NdhCpu) Stop() error {
+	c.stopRequest = true
+	return nil
+}
 
 // cleanup
 func (c *NdhCpu) Close() error { return nil }
