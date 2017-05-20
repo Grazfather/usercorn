@@ -69,7 +69,8 @@ func (n *NdhLoader) Segments() ([]models.SegmentData, error) {
 		Off: uint64(n.TextOff),
 		// TODO: PIE?
 		Addr: uint64(0x8000),
-		Size: uint64(len(n.Text)),
+		// Add 4 bytes incase we need to read the very last instruction
+		Size: uint64(len(n.Text)) + 4,
 		// FIXME: assuming R-X
 		Prot: cpu.PROT_READ | cpu.PROT_EXEC,
 		DataFunc: func() ([]byte, error) {
