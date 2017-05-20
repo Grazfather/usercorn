@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/pkg/errors"
+	"io"
 	"strings"
 
 	"github.com/lunixbochs/usercorn/go/models"
@@ -12,11 +13,16 @@ import (
 
 type ndhReader struct {
 	*bytes.Reader
-	err error
+	err  error
+	addr uint64
 }
 
-func newNdhReader(mem []byte) *ndhReader {
-	return &ndhReader{Reader: bytes.NewReader(mem)}
+func newNdhReader(mem []byte, addr uint64) *ndhReader {
+	return &ndhReader{Reader: bytes.NewReader(mem), addr: addr}
+}
+
+func (n *ndhReader) tell() int {
+	return int(n.Size()) - n.Len()
 }
 
 func (n *ndhReader) u8() (b byte) {
@@ -39,6 +45,7 @@ type arg interface {
 	String() string
 }
 type ins struct {
+	addr  uint64
 	op    uint8
 	name  string
 	args  []arg
@@ -46,15 +53,11 @@ type ins struct {
 }
 
 func (i *ins) String() string {
-	args := make([]string, len(i.args))
-	for i, v := range i.args {
-		args[i] = v.String()
-	}
-	return i.name + " " + strings.Join(args, ", ")
+	return i.name + " " + i.OpStr()
 }
 
 func (i *ins) Addr() uint64 {
-	return 0
+	return i.addr
 }
 
 func (i *ins) Bytes() []byte {
@@ -66,7 +69,11 @@ func (i *ins) Mnemonic() string {
 }
 
 func (i *ins) OpStr() string {
-	return ""
+	args := make([]string, len(i.args))
+	for i, v := range i.args {
+		args[i] = v.String()
+	}
+	return strings.Join(args, ", ")
 }
 
 type reg struct{ num uint8 }
@@ -114,6 +121,7 @@ func (n *ndhReader) flag() []arg {
 }
 
 func (n *ndhReader) ins() *ins {
+	start := n.tell()
 	opcode := n.u8()
 	var name string
 	var args []arg
@@ -142,10 +150,10 @@ func (n *ndhReader) ins() *ins {
 		}
 	}
 	if n.err == nil {
-		len := int(n.Size()) - n.Len()
+		len := n.tell() - start
 		bytes := make([]byte, len)
-		n.ReadAt(bytes, 0)
-		return &ins{opcode, name, args, bytes}
+		n.ReadAt(bytes, int64(start))
+		return &ins{n.addr + uint64(start), opcode, name, args, bytes}
 	}
 	return nil
 }
@@ -155,10 +163,14 @@ type Dis struct{}
 func (d *Dis) Dis(mem []byte, addr uint64) ([]models.Ins, error) {
 	var dis []models.Ins
 	var ins *ins
-	r := newNdhReader(mem)
+	r := newNdhReader(mem, addr)
 	for r.err == nil && (ins == nil || ins.op != OP_END) {
 		ins = r.ins()
-		dis = append(dis, ins)
+		if ins != nil {
+			dis = append(dis, ins)
+		}
+	}
+	if r.err == io.EOF {
 		return dis, nil
 	}
 	return dis, errors.Wrap(r.err, "disassembly fell short")

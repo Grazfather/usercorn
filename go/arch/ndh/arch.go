@@ -11,7 +11,7 @@ var Arch = &models.Arch{
 	Bits: 16,
 
 	Cpu: &ndh.Builder{},
-	Dis: nil,
+	Dis: &ndh.Dis{},
 	Asm: nil,
 
 	PC: 10,
