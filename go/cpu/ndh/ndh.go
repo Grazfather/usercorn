@@ -3,8 +3,8 @@ package ndh
 import (
 	"encoding/binary"
 	"fmt"
-	"github.com/pkg/errors"
 
+	"github.com/lunixbochs/usercorn/go/models"
 	"github.com/lunixbochs/usercorn/go/models/cpu"
 )
 
@@ -116,8 +116,7 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 		instr := instructions[0].(*ins)
 		switch instr.op {
 		case OP_END:
-			//return errors.ExitStatus
-			return errors.New("END: We're done here and I don't know how to stop")
+			return models.ExitStatus(0)
 		case OP_ADD:
 			v = c.get(instr.args[0]) + c.get(instr.args[1])
 			c.set(instr.args[0], v)
