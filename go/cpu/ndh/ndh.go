@@ -248,6 +248,7 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			sp += 2
 			c.RegWrite(SP, sp)
 			c.RegWrite(PC, v)
+			c.OnBlock(v, 0)
 			continue
 		case OP_NOP:
 			// Do nothing
