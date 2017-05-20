@@ -179,6 +179,23 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			v = c.get(instr.args[0])
 			v2 = c.get(instr.args[1])
 			c.setZf(v == 0 && v2 == 0)
+		case OP_CMP:
+			v = c.get(instr.args[0])
+			v2 = c.get(instr.args[1])
+			if v == v2 {
+				c.setZf(true)
+				c.RegWrite(AF, 0)
+				c.RegWrite(BF, 0)
+			} else {
+				c.setZf(false)
+				if v > v2 {
+					c.RegWrite(AF, 1)
+					c.RegWrite(BF, 0)
+				} else {
+					c.RegWrite(AF, 0)
+					c.RegWrite(BF, 1)
+				}
+			}
 		case OP_JMPS:
 			fallthrough
 		case OP_JMPL:
@@ -227,10 +244,6 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			continue
 		case OP_NOP:
 			// Do nothing
-		case OP_CMP:
-			// TODO: AF & BF
-			// TODO: ZF
-			fallthrough
 		default:
 			fmt.Println("[UNIMPLEMENTED]")
 			//return errors.Errorf("Unhandled or illegal instruction! %v\n", instr)
