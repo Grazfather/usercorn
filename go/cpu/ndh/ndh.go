@@ -137,11 +137,10 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			c.set(instr.args[0], v)
 		case OP_POP:
 			sp, _ := c.RegRead(SP)
-			data, _ = c.MemRead(uint64(sp), 2)
-			v := binary.LittleEndian.Uint16(data)
+			v, _ := c.ReadUint(sp, 2, cpu.PROT_READ)
 			sp += 2
 			c.RegWrite(SP, sp)
-			c.set(instr.args[0], v)
+			c.set(instr.args[0], uint16(v))
 		case OP_PUSH:
 			v = c.get(instr.args[0])
 			sp, _ := c.RegRead(SP)
@@ -189,11 +188,10 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 		case OP_RET:
 			// Pop RA
 			sp, _ := c.RegRead(SP)
-			data, _ = c.MemRead(uint64(sp), 2)
-			v := binary.LittleEndian.Uint16(data)
+			v, _ := c.ReadUint(uint64(sp), 2, cpu.PROT_READ)
 			sp += 2
 			c.RegWrite(SP, sp)
-			c.RegWrite(PC, uint64(v))
+			c.RegWrite(PC, v)
 			continue
 		case OP_CMP:
 			// TODO: AF & BF
