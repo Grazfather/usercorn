@@ -126,6 +126,17 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			v = c.get(instr.args[0]) - c.get(instr.args[1])
 			c.set(instr.args[0], v)
 			c.setZf(v == 0)
+		case OP_NOT:
+			v = c.get(instr.args[0]) ^ ^uint16(0)
+			c.setZf(v == 0)
+		case OP_OR:
+			v = c.get(instr.args[0]) | c.get(instr.args[1])
+			c.set(instr.args[0], v)
+			c.setZf(v == 0)
+		case OP_XOR:
+			v = c.get(instr.args[0]) ^ c.get(instr.args[1])
+			c.set(instr.args[0], v)
+			c.setZf(v == 0)
 		case OP_MOV:
 			v = c.get(instr.args[1])
 			c.set(instr.args[0], v)
@@ -193,6 +204,8 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			c.RegWrite(SP, sp)
 			c.RegWrite(PC, v)
 			continue
+		case OP_NOP:
+			// Do nothing
 		case OP_CMP:
 			// TODO: AF & BF
 			// TODO: ZF
@@ -207,18 +220,7 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 		case OP_MUL:
 			// TODO: ZF
 			fallthrough
-		case OP_NOP:
-			fallthrough
-		case OP_NOT:
-			// TODO: ZF
-			fallthrough
-		case OP_OR:
-			// TODO: ZF
-			fallthrough
 		case OP_XCHG:
-			fallthrough
-		case OP_XOR:
-			// TODO: ZF
 			fallthrough
 		default:
 			fmt.Println("[UNIMPLEMENTED]")
