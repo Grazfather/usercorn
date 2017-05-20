@@ -23,6 +23,7 @@ const (
 	AF
 	BF
 	ZF
+	MAX_INST_LEN = 5
 )
 
 type Builder struct{}
@@ -69,16 +70,15 @@ func (c *NdhCpu) get(arg arg) uint16 {
 		regval, _ := c.RegRead(int(a.num))
 		v = uint16(regval)
 	case *indirect:
-		var addr uint64
-		var data []byte
+		var addr, val uint64
 		switch a := a.arg.(type) {
 		case *reg:
 			addr, _ = c.RegRead(int(a.num))
 		default:
 			panic("Wtf this indirect has a non-reg arg")
 		}
-		data, _ = c.MemRead(addr, 1)
-		v = uint16(data[0])
+		val, _ = c.ReadUint(addr, 1, cpu.PROT_READ)
+		v = uint16(val)
 	case *a8:
 		v = uint16(a.val)
 	case *a16:
@@ -101,7 +101,6 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 	var jump uint64
 	var v uint16
 	var v2 uint16
-	var data = make([]byte, 2)
 	// TODO: Support other exit mechanisms e.g. END
 	// TODO: What about jumps before begin?
 	// TODO: begin is ignored
@@ -109,10 +108,7 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 		// TODO: Check for errors
 		pc, _ = c.RegRead(PC)
 		jump = 0
-		// TODO: How much should I read in? 5bytes is definitely enough for 1
-		// Why five? Because it is for sure enough for a whole instruction
-		// Ugly
-		buf, _ := c.MemRead(pc, 5)
+		buf, _ := c.ReadProt(pc, MAX_INST_LEN, cpu.PROT_EXEC)
 		instructions, err := c.Dis.Dis(buf, pc)
 		if err != nil {
 			return err
