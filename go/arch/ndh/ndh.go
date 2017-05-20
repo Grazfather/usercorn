@@ -67,7 +67,8 @@ var ndhSysNum = map[int]string{
 func NdhSyscall(u models.Usercorn) {
 	num, _ := u.RegRead(R0)
 	name, _ := ndhSysNum[int(num)]
-	u.Syscall(int(num), name, co.RegArgs(u, ndhSyscallRegs))
+	ret, _ := u.Syscall(int(num), name, co.RegArgs(u, ndhSyscallRegs))
+	u.RegWrite(ndh.R0, ret)
 }
 
 // Map the stack and sets up argc/argv
