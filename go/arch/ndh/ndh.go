@@ -1,6 +1,7 @@
 package ndh
 
 import (
+	"github.com/lunixbochs/usercorn/go/cpu/ndh"
 	co "github.com/lunixbochs/usercorn/go/kernel/common"
 	"github.com/lunixbochs/usercorn/go/kernel/linux"
 	"github.com/lunixbochs/usercorn/go/kernel/posix"
@@ -87,6 +88,8 @@ func NdhInit(u models.Usercorn, args, env []string) error {
 		return err
 	}
 	_, err = u.PushBytes(stackBytes)
+	sp, _ := u.RegRead(u.Arch().SP)
+	u.RegWrite(ndh.BP, sp)
 	return err
 }
 

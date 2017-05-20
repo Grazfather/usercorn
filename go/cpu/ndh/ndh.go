@@ -45,6 +45,7 @@ type NdhCpu struct {
 	*cpu.Hooks
 	Dis         *Dis
 	stopRequest bool
+	err         error
 }
 
 func (c *NdhCpu) set(arg arg, value uint16) error {
@@ -78,7 +79,7 @@ func (c *NdhCpu) get(arg arg) uint16 {
 		default:
 			panic("Wtf this indirect has a non-reg arg")
 		}
-		val, _ = c.ReadUint(addr, 1, cpu.PROT_READ)
+		val, c.err = c.ReadUint(addr, 1, cpu.PROT_READ)
 		v = uint16(val)
 	case *a8:
 		v = uint16(a.val)
@@ -105,7 +106,7 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 	c.stopRequest = false
 	c.RegWrite(PC, begin)
 	c.OnBlock(begin, 0)
-	for pc < until && !c.stopRequest {
+	for pc < until && !c.stopRequest && c.err == nil {
 		pc, _ = c.RegRead(PC)
 		if jump != 0 {
 			c.OnBlock(pc, 0)
@@ -256,7 +257,7 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 		}
 		c.RegWrite(PC, pc+uint64(len(instr.Bytes()))+jump)
 	}
-	return nil
+	return c.err
 }
 
 func (c *NdhCpu) Stop() error {

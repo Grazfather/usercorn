@@ -69,6 +69,21 @@ func (i *ins) Mnemonic() string {
 }
 
 func (i *ins) OpStr() string {
+outer:
+	switch i.op {
+	case OP_CALL, OP_JA, OP_JB, OP_JMPL, OP_JMPS, OP_JNZ, OP_JZ:
+		var addr uint64
+		switch a := i.args[0].(type) {
+		case *a8:
+			addr = (i.addr + uint64(a.val) + uint64(len(i.bytes))) & 0xffff
+		case *a16:
+			addr = (i.addr + uint64(a.val) + uint64(len(i.bytes))) & 0xffff
+		default:
+			break outer
+		}
+		return fmt.Sprintf("%#x", addr)
+	}
+
 	args := make([]string, len(i.args))
 	for i, v := range i.args {
 		args[i] = v.String()
@@ -81,7 +96,19 @@ type a8 struct{ val uint8 }
 type a16 struct{ val uint16 }
 type indirect struct{ arg }
 
-func (a *reg) String() string      { return fmt.Sprintf("r%d", a.num) }
+func (a *reg) String() string {
+	switch a.num {
+	case PC:
+		return "pc"
+	case SP:
+		return "sp"
+	case BP:
+		return "bp"
+	default:
+		return fmt.Sprintf("r%d", a.num)
+	}
+}
+
 func (a *a8) String() string       { return fmt.Sprintf("%#x", a.val) }
 func (a *a16) String() string      { return fmt.Sprintf("%#x", a.val) }
 func (i *indirect) String() string { return fmt.Sprintf("[%s]", i.arg) }
@@ -173,5 +200,5 @@ func (d *Dis) Dis(mem []byte, addr uint64) ([]models.Ins, error) {
 	if r.err == io.EOF {
 		return dis, nil
 	}
-	return dis, errors.Wrap(r.err, "disassembly fell short")
+	return dis, nil // errors.Wrap(r.err, "disassembly fell short")
 }
