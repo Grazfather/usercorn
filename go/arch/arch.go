@@ -7,6 +7,7 @@ import (
 	"github.com/lunixbochs/usercorn/go/arch/arm64"
 	"github.com/lunixbochs/usercorn/go/arch/m68k"
 	"github.com/lunixbochs/usercorn/go/arch/mips"
+	"github.com/lunixbochs/usercorn/go/arch/ndh"
 	"github.com/lunixbochs/usercorn/go/arch/sparc"
 	"github.com/lunixbochs/usercorn/go/arch/x86"
 	"github.com/lunixbochs/usercorn/go/arch/x86_16"
@@ -18,6 +19,7 @@ var archMap = map[string]*models.Arch{
 	"arm":    arm.Arch,
 	"arm64":  arm64.Arch,
 	"m68k":   m68k.Arch,
+	"ndh":    ndh.Arch,
 	"mips":   mips.Arch,
 	"sparc":  sparc.Arch,
 	"x86":    x86.Arch,

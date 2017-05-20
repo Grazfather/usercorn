@@ -14,8 +14,8 @@ var Arch = &models.Arch{
 	Dis: nil,
 	Asm: nil,
 
-	PC: uc.ARM_REG_PC,
-	SP: uc.ARM_REG_SP,
+	PC: 10,
+	SP: 9,
 	Regs: map[string]int{
 		"r0": 0,
 		"r1": 1,
@@ -25,7 +25,7 @@ var Arch = &models.Arch{
 		"r5": 5,
 		"r6": 6,
 		"r7": 7,
-		"lr": 8,
+		"bp": 8,
 		"sp": 9,
 		"pc": 10,
 	},

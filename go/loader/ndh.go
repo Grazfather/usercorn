@@ -55,8 +55,7 @@ func NewNdhLoader(r io.ReaderAt, arch string) (models.Loader, error) {
 			bits: 16,
 			os:   "ndh",
 			// TODO: vmndh supports aslr/PIE by shifting stack and .text
-			entry: uint64(0x8000),
-			// FIXME: unknown byte order
+			entry:     uint64(0x8000),
 			byteOrder: binary.LittleEndian,
 		},
 		Text:    text,

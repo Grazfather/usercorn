@@ -1,22 +1,30 @@
 package ndh
 
 import (
+	co "github.com/lunixbochs/usercorn/go/kernel/common"
 	"github.com/lunixbochs/usercorn/go/kernel/posix"
 	"github.com/lunixbochs/usercorn/go/models"
-	"github.com/lunixbochs/usercorn/go/models/cpu"
 )
 
 type NdhKernel struct {
+	*co.KernelBase
+}
+
+func NewKernel() *NdhKernel {
+	k := &NdhKernel{
+		KernelBase: &co.KernelBase{},
+	}
+	return k
 }
 
 func NdhKernels(u models.Usercorn) []interface{} {
-	return []interface{}{&NdhKernel{}}
+	return []interface{}{NewKernel()}
 }
 
 // Map the stack and sets up argc/argv
 func NdhInit(u models.Usercorn, args, env []string) error {
 	// FIXME: support NX?
-	if err := u.MemMapProt(0x0, 0x8000, cpu.PROT_ALL); err != nil {
+	if err := u.MapStack(0, 0x8000, false); err != nil {
 		return err
 	}
 	// push argv strings (ndh has no env)

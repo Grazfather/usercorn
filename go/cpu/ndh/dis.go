@@ -6,14 +6,9 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"strings"
-)
 
-type Ins interface {
-	Addr() uint64
-	Bytes() []byte
-	Mnemonic() string
-	OpStr() string
-}
+	"github.com/lunixbochs/usercorn/go/models"
+)
 
 type ndhReader struct {
 	*bytes.Reader
@@ -44,9 +39,10 @@ type arg interface {
 	String() string
 }
 type ins struct {
-	op   uint8
-	name string
-	args []arg
+	op    uint8
+	name  string
+	args  []arg
+	bytes []byte
 }
 
 func (i *ins) String() string {
@@ -57,21 +53,36 @@ func (i *ins) String() string {
 	return i.name + " " + strings.Join(args, ", ")
 }
 
+func (i *ins) Addr() uint64 {
+	return 0
+}
+
+func (i *ins) Bytes() []byte {
+	return i.bytes
+}
+
+func (i *ins) Mnemonic() string {
+	return i.name
+}
+
+func (i *ins) OpStr() string {
+	return ""
+}
+
 type reg struct{ num uint8 }
 type a8 struct{ val uint8 }
 type a16 struct{ val uint16 }
 type indirect struct{ arg }
 
-func (a *reg) String() string { return fmt.Sprintf("r%d", a.num) }
-func (a *a8) String() string  { return fmt.Sprintf("%#x", a.val) }
-func (a *a16) String() string { return fmt.Sprintf("%#x", a.val) }
-
+func (a *reg) String() string      { return fmt.Sprintf("r%d", a.num) }
+func (a *a8) String() string       { return fmt.Sprintf("%#x", a.val) }
+func (a *a16) String() string      { return fmt.Sprintf("%#x", a.val) }
 func (i *indirect) String() string { return fmt.Sprintf("[%s]", i.arg) }
 
 func (n *ndhReader) reg() arg          { return &reg{n.u8()} }
-func (n *ndhReader) reg_indirect() arg { return &indirect{n.reg()} }
 func (n *ndhReader) a8() arg           { return &a8{n.u8()} }
 func (n *ndhReader) a16() arg          { return &a16{n.u16()} }
+func (n *ndhReader) reg_indirect() arg { return &indirect{n.reg()} }
 
 func (n *ndhReader) flag() []arg {
 	flag := n.u8()
@@ -105,21 +116,21 @@ func (n *ndhReader) flag() []arg {
 func (n *ndhReader) ins() *ins {
 	opcode := n.u8()
 	var name string
-	var a []arg
+	var args []arg
 	if op, ok := opData[int(opcode)]; ok {
 		name = op.name
 		switch op.arg {
 		case A_NONE:
 		case A_1REG:
-			a = []arg{n.reg()}
+			args = []arg{n.reg()}
 		case A_2REG:
-			a = []arg{n.reg(), n.reg()}
+			args = []arg{n.reg(), n.reg()}
 		case A_U8:
-			a = []arg{n.a8()}
+			args = []arg{n.a8()}
 		case A_U16:
-			a = []arg{n.a16()}
+			args = []arg{n.a16()}
 		case A_FLAG:
-			a = n.flag()
+			args = n.flag()
 		default:
 			if n.err == nil {
 				n.err = errors.Errorf("unknown op arg type: %d", op.arg)
@@ -131,20 +142,24 @@ func (n *ndhReader) ins() *ins {
 		}
 	}
 	if n.err == nil {
-		return &ins{opcode, name, a}
+		len := int(n.Size()) - n.Len()
+		bytes := make([]byte, len)
+		n.ReadAt(bytes, 0)
+		return &ins{opcode, name, args, bytes}
 	}
 	return nil
 }
 
 type Dis struct{}
 
-func (d *Dis) Dis(mem []byte, addr uint64) ([]Ins, error) {
-	var dis []Ins
+func (d *Dis) Dis(mem []byte, addr uint64) ([]models.Ins, error) {
+	var dis []models.Ins
 	var ins *ins
 	r := newNdhReader(mem)
 	for r.err == nil && (ins == nil || ins.op != OP_END) {
 		ins = r.ins()
-		fmt.Printf("%s\n", ins)
+		dis = append(dis, ins)
+		return dis, nil
 	}
 	return dis, errors.Wrap(r.err, "disassembly fell short")
 }

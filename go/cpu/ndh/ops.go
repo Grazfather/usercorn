@@ -49,13 +49,14 @@ const (
 	OP_FLAG_REG_REGINDIRECT         = 0x0a
 )
 
+// Addressing mode
 const (
 	A_NONE = iota
 	A_1REG
 	A_2REG
 	A_U8
 	A_U16
-	A_FLAG
+	A_FLAG // Addressing mode read from next byte
 )
 
 type op struct {
