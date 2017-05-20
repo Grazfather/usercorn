@@ -178,7 +178,31 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 		case OP_SYSCALL:
 			c.OnIntr(0)
 		case OP_CALL:
-			fallthrough
+			// Push RA
+			sp, _ := c.RegRead(SP)
+			sp -= 2
+			c.RegWrite(SP, sp)
+			binary.LittleEndian.PutUint16(data, uint16(pc)+uint16(len(instr.Bytes())))
+			c.MemWrite(sp, data)
+			// Call is special: If the arg is a register it's an
+			// absolute jump, otherwise it's an offset
+			v = c.get(instr.args[0])
+			switch instr.args[0].(type) {
+			case *reg:
+				c.RegWrite(PC, uint64(v))
+				continue
+			case *a16:
+				jump = uint64(v)
+			}
+		case OP_RET:
+			// Pop RA
+			sp, _ := c.RegRead(SP)
+			data, _ = c.MemRead(uint64(sp), 2)
+			v := binary.LittleEndian.Uint16(data)
+			sp += 2
+			c.RegWrite(SP, sp)
+			c.RegWrite(PC, uint64(v))
+			continue
 		case OP_CMP:
 			// TODO: AF & BF
 			// TODO: ZF
@@ -200,8 +224,6 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			fallthrough
 		case OP_OR:
 			// TODO: ZF
-			fallthrough
-		case OP_RET:
 			fallthrough
 		case OP_XCHG:
 			fallthrough
