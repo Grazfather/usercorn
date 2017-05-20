@@ -134,7 +134,7 @@ func (n *ndhReader) flag() []arg {
 	case OP_FLAG_DIRECT16:
 		return []arg{n.a16()}
 	case OP_FLAG_REGINDIRECT_REG:
-		return []arg{n.reg_indirect()}
+		return []arg{n.reg_indirect(), n.reg()}
 	case OP_FLAG_REGINDIRECT_DIRECT08:
 		return []arg{n.reg_indirect(), n.a8()}
 	case OP_FLAG_REGINDIRECT_DIRECT16:
