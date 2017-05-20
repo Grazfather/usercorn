@@ -171,10 +171,6 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			sp -= 2
 			c.RegWrite(SP, sp)
 			c.WriteUint(sp, 2, cpu.PROT_WRITE, uint64(v))
-		case OP_JMPS:
-			fallthrough
-		case OP_JMPL:
-			jump = uint64(c.get(instr.args[0]))
 		case OP_TEST:
 			v = c.get(instr.args[0])
 			v2 = c.get(instr.args[1])
@@ -183,6 +179,10 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			v = c.get(instr.args[0]) & c.get(instr.args[1])
 			c.set(instr.args[0], v)
 			c.setZf(v == 0)
+		case OP_JMPS:
+			fallthrough
+		case OP_JMPL:
+			jump = uint64(c.get(instr.args[0]))
 		case OP_JZ:
 			if zf, _ := c.RegRead(ZF); zf == 1 {
 				jump = uint64(c.get(instr.args[0]))
