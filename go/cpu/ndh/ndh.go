@@ -178,11 +178,15 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			c.RegWrite(SP, sp)
 			c.set(instr.args[0], uint16(v))
 		case OP_PUSH:
+			size := 2
 			v = c.get(instr.args[0])
 			sp, _ := c.RegRead(SP)
-			sp -= 2
+			if _, ok := instr.args[0].(*a8); ok {
+				size = 1
+			}
+			sp -= uint64(size)
+			c.WriteUint(sp, size, cpu.PROT_WRITE, uint64(v))
 			c.RegWrite(SP, sp)
-			c.WriteUint(sp, 2, cpu.PROT_WRITE, uint64(v))
 		case OP_TEST:
 			v = c.get(instr.args[0])
 			v2 = c.get(instr.args[1])
@@ -272,5 +276,5 @@ func (c *NdhCpu) Close() error { return nil }
 
 // leaky abstraction
 func (c *NdhCpu) Backend() interface{} {
-	return nil
+	return c
 }
