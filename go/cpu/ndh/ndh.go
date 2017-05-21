@@ -133,6 +133,7 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			c.setZf(v == 0)
 		case OP_NOT:
 			v = c.get(instr.args[0]) ^ ^uint16(0)
+			c.set(instr.args[0], v)
 			c.setZf(v == 0)
 		case OP_OR:
 			v = c.get(instr.args[0]) | c.get(instr.args[1])
