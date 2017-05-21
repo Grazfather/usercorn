@@ -252,7 +252,13 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			fmt.Println("[UNIMPLEMENTED]")
 			//return errors.Errorf("Unhandled or illegal instruction! %v\n", instr)
 		}
-		c.RegWrite(PC, pc+uint64(len(instr.Bytes()))+jump)
+		if jump != 0 {
+			pc += uint64(len(instr.Bytes())) + jump
+			c.OnBlock(pc, 0)
+		} else {
+			pc += uint64(len(instr.Bytes()))
+		}
+		c.RegWrite(PC, pc)
 	}
 	return c.err
 }
