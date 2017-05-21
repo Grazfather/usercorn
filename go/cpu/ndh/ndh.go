@@ -232,6 +232,7 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 			switch instr.args[0].(type) {
 			case *reg:
 				c.RegWrite(PC, uint64(v))
+				c.OnBlock(uint64(v), 0)
 				continue
 			case *a16:
 				jump = uint64(v)
