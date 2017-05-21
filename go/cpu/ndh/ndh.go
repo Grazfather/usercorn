@@ -29,12 +29,13 @@ const (
 type Builder struct{}
 
 func (b *Builder) New() (cpu.Cpu, error) {
-	// Ugh
-	regs := []int{R0, R1, R2, R3, R4, R5, R6, R7, BP, SP, PC, AF, BF, ZF}
-
-	ndh := &NdhCpu{Regs: cpu.NewRegs(16, regs), Mem: cpu.NewMem(16, binary.LittleEndian)}
-	hooks := cpu.NewHooks(ndh, ndh.Mem)
-	ndh.Hooks = hooks
+	ndh := &NdhCpu{
+		Regs: cpu.NewRegs(16, []int{
+			R0, R1, R2, R3, R4, R5, R6, R7,
+			BP, SP, PC, AF, BF, ZF}),
+		Mem: cpu.NewMem(16, binary.LittleEndian),
+	}
+	ndh.Hooks = cpu.NewHooks(ndh, ndh.Mem)
 	ndh.Dis = &Dis{}
 	return ndh, nil
 }
