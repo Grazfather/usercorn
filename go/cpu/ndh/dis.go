@@ -177,8 +177,7 @@ func (n *ndhReader) ins() *ins {
 		}
 	}
 	if n.err == nil {
-		len := n.tell() - start
-		bytes := make([]byte, len)
+		bytes := make([]byte, n.tell()-start)
 		n.ReadAt(bytes, int64(start))
 		return &ins{n.addr + uint64(start), opcode, name, args, bytes}
 	}

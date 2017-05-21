@@ -54,14 +54,8 @@ func (c *NdhCpu) set(arg arg, value uint16) error {
 	case *reg:
 		c.RegWrite(int(a.num), uint64(value))
 	case *indirect:
-		var addr uint64
-		switch a := a.arg.(type) {
-		case *reg:
-			addr, _ = c.RegRead(int(a.num))
-		default:
-			panic("Wtf this indirect has a non-reg arg")
-		}
-		c.WriteUint(addr, 1, cpu.PROT_WRITE, uint64(value&0xFF))
+		addr := c.get(a.arg.(*reg))
+		c.WriteUint(uint64(addr), 1, cpu.PROT_WRITE, uint64(value&0xFF))
 	}
 	return nil
 }
@@ -73,14 +67,9 @@ func (c *NdhCpu) get(arg arg) uint16 {
 		regval, _ := c.RegRead(int(a.num))
 		v = uint16(regval)
 	case *indirect:
-		var addr, val uint64
-		switch a := a.arg.(type) {
-		case *reg:
-			addr, _ = c.RegRead(int(a.num))
-		default:
-			panic("Wtf this indirect has a non-reg arg")
-		}
-		val, c.err = c.ReadUint(addr, 1, cpu.PROT_READ)
+		var val uint64
+		addr := c.get(a.arg.(*reg))
+		val, c.err = c.ReadUint(uint64(addr), 1, cpu.PROT_READ)
 		v = uint16(val)
 	case *a8:
 		v = uint16(a.val)
