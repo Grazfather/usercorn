@@ -36,7 +36,6 @@ func (b *Builder) New() (cpu.Cpu, error) {
 		Mem: cpu.NewMem(16, binary.LittleEndian),
 	}
 	ndh.Hooks = cpu.NewHooks(ndh, ndh.Mem)
-	ndh.Dis = &Dis{}
 	return ndh, nil
 }
 
@@ -44,7 +43,6 @@ type NdhCpu struct {
 	*cpu.Regs
 	*cpu.Mem
 	*cpu.Hooks
-	Dis         *Dis
 	stopRequest bool
 	err         error
 }
@@ -90,12 +88,14 @@ func (c *NdhCpu) setZf(v bool) {
 // execution
 func (c *NdhCpu) Start(begin, until uint64) error {
 	var pc uint64
+	var dis Dis
 	var jump uint64
 	var v uint16
 	var v2 uint16
 	c.stopRequest = false
 	c.RegWrite(PC, begin)
 	c.OnBlock(begin, 0)
+
 	for pc != until && !c.stopRequest && c.err == nil {
 		pc, _ = c.RegRead(PC)
 		if jump != 0 {
@@ -103,7 +103,7 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 		}
 		jump = 0
 		buf, _ := c.ReadProt(pc, MAX_INST_LEN, cpu.PROT_EXEC)
-		instructions, err := c.Dis.Dis(buf, pc)
+		instructions, err := dis.Dis(buf, pc)
 		if err != nil {
 			return err
 		}
