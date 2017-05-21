@@ -23,8 +23,8 @@ func NdhKernels(u models.Usercorn) []interface{} {
 	return []interface{}{NewKernel()}
 }
 
-var ndhSyscallRegs = []int{ndh.R1, ndh.R2, ndh.R3, ndh.R4}
-var ndhSysNum = map[int]string{
+var syscallRegs = []int{ndh.R1, ndh.R2, ndh.R3, ndh.R4}
+var sysNum = map[int]string{
 	0x01: "exit",
 	0x02: "open",
 	0x03: "read",
@@ -49,8 +49,8 @@ var ndhSysNum = map[int]string{
 
 func NdhSyscall(u models.Usercorn) {
 	num, _ := u.RegRead(ndh.R0)
-	name, _ := ndhSysNum[int(num)]
-	ret, _ := u.Syscall(int(num), name, co.RegArgs(u, ndhSyscallRegs))
+	name, _ := sysNum[int(num)]
+	ret, _ := u.Syscall(int(num), name, co.RegArgs(u, syscallRegs))
 	u.RegWrite(ndh.R0, ret)
 }
 
