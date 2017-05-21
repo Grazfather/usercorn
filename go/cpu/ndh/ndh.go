@@ -107,7 +107,7 @@ func (c *NdhCpu) Start(begin, until uint64) error {
 	c.stopRequest = false
 	c.RegWrite(PC, begin)
 	c.OnBlock(begin, 0)
-	for pc < until && !c.stopRequest && c.err == nil {
+	for pc != until && !c.stopRequest && c.err == nil {
 		pc, _ = c.RegRead(PC)
 		if jump != 0 {
 			c.OnBlock(pc, 0)
